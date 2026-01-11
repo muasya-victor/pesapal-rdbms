@@ -1,0 +1,18 @@
+{
+  "test": {
+    "columns": {
+      "id": "INT",
+      "name": "TEXT"
+    },
+    "primary_key": null,
+    "unique": []
+  },
+  "users": {
+    "columns": {
+      "id": "INT",
+      "name": "TEXT"
+    },
+    "primary_key": null,
+    "unique": []
+  }
+}

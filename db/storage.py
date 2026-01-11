@@ -30,13 +30,25 @@ class Storage:
         """Check if table file exists"""
         return self.table_path(table_name).exists()
     
-    def read_schema(self):
-        """Read entire schema catalog"""
-        schema_path = self.data_dir / "schema.json"
-        if not schema_path.exists():
-            return {}
-        with open(schema_path, 'r') as f:
-            return json.load(f)
+    def read_table(self, table_name):
+        """Read all rows from a table"""
+        path = self.table_path(table_name)
+        
+        # If file doesn't exist, table is empty
+        if not path.exists():
+            return []
+        
+        # If file exists but is empty, table is empty
+        if path.stat().st_size == 0:
+            return []
+        
+        try:
+            with open(path, 'r') as f:
+                data = json.load(f)
+                return data.get("rows", [])
+        except json.JSONDecodeError:
+            print(f"Warning: {table_name}.json contains invalid JSON. Returning empty table.")
+            return []
         
     def write_schema(self, schema):
         """Write entire schema catalog"""
@@ -54,3 +66,14 @@ class Storage:
         schema = self.read_schema()
         schema[table_name] = table_schema
         self.write_schema(schema)
+
+    def read_schema(self):
+        """Read entire schema catalog from disk"""
+        schema_path = self.data_dir / "schema.json"
+        if not schema_path.exists():
+            return {}
+        try:
+            with open(schema_path, 'r') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            return {}

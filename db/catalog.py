@@ -2,6 +2,9 @@ class Catalog:
     def __init__(self, storage):
         self.storage = storage
         self.schema = self.storage.read_schema()
+        if not isinstance(self.schema, dict):
+            print("Warning: Schema was not a dictionary. Resetting.")
+            self.schema = {}
     
     def create_table(self, table_name, columns):
         """
