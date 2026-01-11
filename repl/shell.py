@@ -31,11 +31,6 @@ class MiniDBShell:
             self.running = False
             return
         
-        # Special demo command
-        if cmd.upper() == "SELECT 1":
-            print("[1]")
-            return
-        
         # CREATE TABLE command
         if cmd.upper().startswith("CREATE TABLE"):
             try:
