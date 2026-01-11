@@ -10,10 +10,10 @@ class MiniDBShell:
         self.catalog = Catalog(self.storage)
     
     def run(self):
-        print("Muasya RDBMS - Type 'EXIT;' to quit")
+        print("Welcome To Shell - Type 'EXIT;' to quit")
         while self.running:
             try:
-                command = input("mini-db> ").strip()
+                command = input("muasya-rdbms> ").strip()
                 if not command:
                     continue
                 self.handle_command(command)
@@ -29,11 +29,6 @@ class MiniDBShell:
         if cmd.upper() in ['EXIT', 'QUIT']:
             print("Goodbye!")
             self.running = False
-            return
-        
-        # Special demo command
-        if cmd.upper() == "SELECT 1":
-            print("[1]")
             return
         
         # CREATE TABLE command
