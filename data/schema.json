@@ -1,18 +1,18 @@
 {
-  "test": {
-    "columns": {
-      "id": "INT",
-      "name": "TEXT"
-    },
-    "primary_key": null,
-    "unique": []
-  },
   "users": {
     "columns": {
       "id": "INT",
+      "email": "TEXT",
       "name": "TEXT"
     },
-    "primary_key": null,
-    "unique": []
+    "primary_key": "id",
+    "unique_columns": [
+      "email"
+    ],
+    "column_order": [
+      "id",
+      "email",
+      "name"
+    ]
   }
 }
