@@ -1,7 +1,8 @@
 from db.storage import Storage
 from db.catalog import Catalog
-from parser.tokenizer import tokenize, parse_create_table
+from parser.tokenizer import tokenize
 from executor.executor import Executor
+from parser.parser import Parser
 
 class MiniDBShell:
     def __init__(self):
@@ -9,6 +10,7 @@ class MiniDBShell:
         self.storage = Storage()
         self.catalog = Catalog(self.storage)
         self.executor = Executor(self.catalog, self.storage)
+        self.parser = Parser()
     
     def run(self):
         print("Welcome To Shell - Type 'EXIT;' to quit")
@@ -35,8 +37,8 @@ class MiniDBShell:
         # CREATE TABLE command
         if cmd.upper().startswith("CREATE TABLE"):
             try:
-                tokens = tokenize(cmd)
-                table_name, columns = parse_create_table(tokens)
+                # Use new parser
+                table_name, columns = self.parser.parse_create_table(cmd)
                 self.catalog.create_table(table_name, columns)
                 print(f"Table '{table_name}' created successfully")
             except Exception as e:

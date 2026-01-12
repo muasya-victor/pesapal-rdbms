@@ -14,5 +14,19 @@
     },
     "primary_key": null,
     "unique": []
+  },
+  "orders": {
+    "columns": {
+      "id": "INT",
+      "user_id": "INT",
+      "item": "TEXT"
+    },
+    "primary_key": "id",
+    "unique_columns": [],
+    "column_order": [
+      "id",
+      "user_id",
+      "item"
+    ]
   }
 }

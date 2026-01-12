@@ -1,61 +1,57 @@
 def tokenize(sql):
-    """Super simple tokenizer - split by whitespace and special chars"""
+    """
+    Tokenizer that handles:
+    - Quoted strings: "hello world"
+    - Multiple spaces
+    - Special characters: ( ) , = ;
+    """
     tokens = []
     current = ''
+    in_quotes = False
+    quote_char = None
     
-    for char in sql:
-        if char in ' ;(),=':
+    i = 0
+    while i < len(sql):
+        char = sql[i]
+        
+        # Handle quotes
+        if char in ('"', "'") and (i == 0 or sql[i-1] != '\\'):
+            if not in_quotes:
+                # Start of quoted string
+                in_quotes = True
+                quote_char = char
+                if current:  # Flush any previous token
+                    tokens.append(current)
+                    current = ''
+                current += char
+            elif char == quote_char:
+                # End of quoted string
+                current += char
+                tokens.append(current)
+                current = ''
+                in_quotes = False
+                quote_char = None
+            else:
+                # Nested or mismatched quote - treat as normal char
+                current += char
+        elif in_quotes:
+            # Inside quoted string, add everything
+            current += char
+        elif char in ' ;(),=':
+            # Special characters that break tokens
             if current:
                 tokens.append(current)
                 current = ''
             if char != ' ':
                 tokens.append(char)
         else:
+            # Regular character
             current += char
+        
+        i += 1
     
+    # The last token
     if current:
         tokens.append(current)
     
     return tokens
-
-def parse_create_table(tokens):
-    """
-    Parse: CREATE TABLE table_name (col1 TYPE, col2 TYPE)
-    Returns: (table_name, columns)
-    columns = [("col1", "TYPE"), ("col2", "TYPE")]
-    """
-    # Skip CREATE, TABLE
-    if len(tokens) < 6:
-        raise Exception("Invalid CREATE TABLE syntax")
-    
-    table_name = tokens[2]  # Third token
-    
-    # Find parentheses
-    try:
-        open_paren = tokens.index('(')
-        close_paren = tokens.index(')')
-    except ValueError:
-        raise Exception("Missing parentheses in CREATE TABLE")
-    
-    # Parse columns between parentheses
-    column_tokens = tokens[open_paren + 1:close_paren]
-    columns = []
-    
-    i = 0
-    while i < len(column_tokens):
-        if column_tokens[i] == ',':
-            i += 1
-            continue
-        
-        col_name = column_tokens[i]
-        if i + 1 >= len(column_tokens):
-            raise Exception(f"Missing type for column {col_name}")
-        
-        col_type = column_tokens[i + 1].upper()
-        if col_type not in ['INT', 'TEXT']:
-            raise Exception(f"Unsupported type: {col_type}")
-        
-        columns.append((col_name, col_type))
-        i += 2
-    
-    return table_name, columns
