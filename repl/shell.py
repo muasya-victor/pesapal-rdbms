@@ -1,13 +1,14 @@
 from db.storage import Storage
 from db.catalog import Catalog
 from parser.tokenizer import tokenize, parse_create_table
-
+from executor.executor import Executor
 
 class MiniDBShell:
     def __init__(self):
         self.running = True
         self.storage = Storage()
         self.catalog = Catalog(self.storage)
+        self.executor = Executor(self.catalog, self.storage)
     
     def run(self):
         print("Welcome To Shell - Type 'EXIT;' to quit")
