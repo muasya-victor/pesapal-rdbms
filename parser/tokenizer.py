@@ -2,7 +2,7 @@ def tokenize(sql):
     """
     Tokenizer that handles:
     - Quoted strings: "hello world"
-    - Multiple spaces
+    - Multiple spaces, tabs, and newlines
     - Special characters: ( ) , = ;
     """
     tokens = []
@@ -20,7 +20,7 @@ def tokenize(sql):
                 # Start of quoted string
                 in_quotes = True
                 quote_char = char
-                if current:  # Flush any previous token
+                if current and current.strip():  # Flush any previous non-empty token
                     tokens.append(current)
                     current = ''
                 current += char
@@ -37,21 +37,25 @@ def tokenize(sql):
         elif in_quotes:
             # Inside quoted string, add everything
             current += char
-        elif char in ' ;(),=':
-            # Special characters that break tokens
+        elif char in ' \t\n(),=;':
+            # Whitespace and special characters break tokens
             if current:
                 tokens.append(current)
                 current = ''
-            if char != ' ':
+            if char in '(),=;':
                 tokens.append(char)
+            # Skip whitespace (space, tab, newline)
         else:
             # Regular character
             current += char
         
         i += 1
     
-    # The last token
+    # Don't forget the last token
     if current:
         tokens.append(current)
+    
+    # Filter out any empty tokens that might have been created
+    tokens = [token for token in tokens if token and token.strip()]
     
     return tokens

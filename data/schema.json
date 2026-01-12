@@ -1,32 +1,18 @@
 {
-  "test": {
-    "columns": {
-      "id": "INT",
-      "name": "TEXT"
-    },
-    "primary_key": null,
-    "unique": []
-  },
   "users": {
     "columns": {
       "id": "INT",
+      "email": "TEXT",
       "name": "TEXT"
     },
-    "primary_key": null,
-    "unique": []
-  },
-  "orders": {
-    "columns": {
-      "id": "INT",
-      "user_id": "INT",
-      "item": "TEXT"
-    },
     "primary_key": "id",
-    "unique_columns": [],
+    "unique_columns": [
+      "email"
+    ],
     "column_order": [
       "id",
-      "user_id",
-      "item"
+      "email",
+      "name"
     ]
   }
 }

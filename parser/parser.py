@@ -86,3 +86,70 @@ class Parser:
                 i += 1
         
         return (col_name, col_type, constraints)
+
+    def parse_insert(self, sql):
+        """
+        Parse: INSERT INTO table_name VALUES (value1, value2, ...)
+        Returns: (table_name, [value1, value2, ...])
+        """
+        from .tokenizer import tokenize  # Import here to avoid circular imports
+        tokens = tokenize(sql)
+        
+        # Basic validation
+        if len(tokens) < 7:
+            raise Exception("Invalid INSERT syntax")
+        if tokens[0].upper() != "INSERT" or tokens[1].upper() != "INTO":
+            raise Exception("Not an INSERT statement")
+        
+        table_name = tokens[2]
+        
+        # Find VALUES keyword
+        try:
+            values_idx = tokens.index("VALUES")
+        except ValueError:
+            raise Exception("Missing VALUES keyword in INSERT")
+        
+        # Find parentheses
+        try:
+            open_paren = tokens.index('(', values_idx)
+            close_paren = tokens.index(')', open_paren)
+        except ValueError:
+            raise Exception("Missing parentheses in INSERT VALUES")
+        
+        # Parse values between parentheses
+        value_tokens = tokens[open_paren + 1:close_paren]
+        values = self._parse_values(value_tokens)
+        
+        return table_name, values
+    
+    def _parse_values(self, tokens):
+            """
+            Parse values list like: ['1', ',', '"alice@test.com"', ',', '"Alice"']
+            Returns: [1, "alice@test.com", "Alice"] with proper types
+            """
+            values = []
+            i = 0
+            
+            while i < len(tokens):
+                token = tokens[i]
+                
+                if token == ',':
+                    i += 1
+                    continue
+                
+                # Check if it's a quoted string
+                if (token.startswith('"') and token.endswith('"')) or \
+                (token.startswith("'") and token.endswith("'")):
+                    # Remove quotes and add as string
+                    values.append(token[1:-1])
+                else:
+                    # Try to parse as integer
+                    try:
+                        values.append(int(token))
+                    except ValueError:
+                        # Keep as string if not integer
+                        values.append(token)
+                
+                i += 1
+            
+            return values
