@@ -153,3 +153,70 @@ class Parser:
                 i += 1
             
             return values
+    
+    def parse_select(self, sql):
+        """
+        Parse: SELECT column_list FROM table_name [WHERE condition]
+        Returns: (table_name, columns, where_clause)
+        where_clause: (column_name, operator, value) or None
+        """
+        from .tokenizer import tokenize
+        tokens = tokenize(sql)
+        
+        # Basic validation
+        if len(tokens) < 4:
+            raise Exception("Invalid SELECT syntax")
+        if tokens[0].upper() != "SELECT":
+            raise Exception("Not a SELECT statement")
+        
+        # Parse column list
+        columns = []
+        i = 1  # Start after SELECT
+        
+        while i < len(tokens) and tokens[i].upper() != "FROM":
+            if tokens[i] != ',':
+                columns.append(tokens[i])
+            i += 1
+        
+        if i >= len(tokens) or tokens[i].upper() != "FROM":
+            raise Exception("Missing FROM keyword in SELECT")
+        
+        i += 1  # Move past FROM
+        if i >= len(tokens):
+            raise Exception("Missing table name in SELECT")
+        
+        table_name = tokens[i]
+        i += 1
+        
+        # Parse WHERE clause if present
+        where_clause = None
+        if i < len(tokens) and tokens[i].upper() == "WHERE":
+            i += 1  # Move past WHERE
+            
+            if i + 2 >= len(tokens):
+                raise Exception("Invalid WHERE clause")
+            
+            column = tokens[i]
+            operator = tokens[i + 1]
+            
+            # Only support = operator for now
+            if operator != '=':
+                raise Exception(f"Unsupported operator: {operator}. Only '=' is supported")
+            
+            value = tokens[i + 2]
+            
+            # Parse the value (remove quotes if string)
+            if (value.startswith('"') and value.endswith('"')) or \
+               (value.startswith("'") and value.endswith("'")):
+                value = value[1:-1]  # Remove quotes
+            else:
+                # Try to parse as integer
+                try:
+                    value = int(value)
+                except ValueError:
+                    # Keep as string if not integer
+                    pass
+            
+            where_clause = (column, operator, value)
+        
+        return table_name, columns, where_clause

@@ -107,8 +107,77 @@ class MiniDBShell:
                 print(f"Error: {e}")
             return
         
-        
+            # In handle_command method, add this after INSERT handling:
+    
+        # SELECT command
+        if cmd.upper().startswith("SELECT"):
+            try:
+                # Parse the SELECT command
+                table_name, columns, where_clause = self.parser.parse_select(cmd)
+                
+                # Read the table data
+                rows = self.storage.read_table(table_name)
+                
+                # Get schema for column mapping
+                schema = self.catalog.get_table_schema(table_name)
+                if not schema:
+                    raise Exception(f"Table '{table_name}' not found")
+                
+                # Apply WHERE clause if present
+                if where_clause:
+                    column_name, operator, value = where_clause
+                    
+                    # Find column index
+                    if column_name not in schema["column_order"]:
+                        raise Exception(f"Column '{column_name}' not found in table '{table_name}'")
+                    
+                    col_index = schema["column_order"].index(column_name)
+                    
+                    # Filter rows (only = operator for now)
+                    filtered_rows = []
+                    for row in rows:
+                        if row[col_index] == value:
+                            filtered_rows.append(row)
+                    rows = filtered_rows
+                
+                # Select specific columns if requested
+                if columns and columns != ['*']:
+                    # Validate requested columns
+                    for col in columns:
+                        if col not in schema["column_order"]:
+                            raise Exception(f"Column '{col}' not found in table '{table_name}'")
+                    
+                    # Map column names to indices
+                    col_indices = [schema["column_order"].index(col) for col in columns]
+                    
+                    # Extract only requested columns
+                    projected_rows = []
+                    for row in rows:
+                        projected_row = [row[idx] for idx in col_indices]
+                        projected_rows.append(projected_row)
+                    rows = projected_rows
+                
+                # Display results
+                if not rows:
+                    print("(0 rows)")
+                else:
+                    # Simple tabular display
+                    for row in rows:
+                        # Format the row for display
+                        formatted_row = []
+                        for value in row:
+                            if isinstance(value, str):
+                                formatted_row.append(f'"{value}"')
+                            else:
+                                formatted_row.append(str(value))
+                        print(f"[{', '.join(formatted_row)}]")
+                    print(f"({len(rows)} row{'s' if len(rows) != 1 else ''})")
+                    
+            except Exception as e:
+                print(f"Error: {e}")
+            return
+            
         print(f"Command received: {command}")
-        print("Supported: CREATE TABLE, INSERT INTO, SHOW TABLES, EXIT")
+        print("Supported: CREATE TABLE, INSERT INTO, SHOW TABLES,SELECT, EXIT")
 
         
