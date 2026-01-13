@@ -1,0 +1,84 @@
+{
+  "rows": [
+    [
+      1768318732464,
+      "create_user",
+      "Create new users"
+    ],
+    [
+      1768318732467,
+      "update_user",
+      "Update user information"
+    ],
+    [
+      1768318732471,
+      "delete_user",
+      "Delete users"
+    ],
+    [
+      1768318732474,
+      "view_users",
+      "View all users"
+    ],
+    [
+      1768318732477,
+      "create_product",
+      "Create new products"
+    ],
+    [
+      1768318732480,
+      "update_product",
+      "Update any product"
+    ],
+    [
+      1768318732483,
+      "delete_product",
+      "Delete any product"
+    ],
+    [
+      1768318732486,
+      "view_all_products",
+      "View all products"
+    ],
+    [
+      1768318732489,
+      "view_products",
+      "View products"
+    ],
+    [
+      1768318732492,
+      "create_own_product",
+      "Create own products"
+    ],
+    [
+      1768318732495,
+      "update_own_product",
+      "Update own products"
+    ],
+    [
+      1768318732497,
+      "delete_own_product",
+      "Delete own products"
+    ],
+    [
+      1768318732500,
+      "update_stock",
+      "Update product stock"
+    ],
+    [
+      1768318732503,
+      "manage_roles",
+      "Manage roles and permissions"
+    ],
+    [
+      1768318732507,
+      "view_profile",
+      "View own profile"
+    ],
+    [
+      1768318732510,
+      "update_profile",
+      "Update own profile"
+    ]
+  ]
+}

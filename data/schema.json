@@ -1,0 +1,85 @@
+{
+  "users": {
+    "columns": {
+      "id": "INT",
+      "username": "TEXT",
+      "email": "TEXT",
+      "password_hash": "TEXT",
+      "role_id": "INT",
+      "created_at": "TEXT",
+      "is_active": "INT"
+    },
+    "primary_key": "id",
+    "unique_columns": [
+      "username",
+      "email"
+    ],
+    "column_order": [
+      "id",
+      "username",
+      "email",
+      "password_hash",
+      "role_id",
+      "created_at",
+      "is_active"
+    ]
+  },
+  "roles": {
+    "columns": {
+      "id": "INT",
+      "name": "TEXT",
+      "permissions": "TEXT"
+    },
+    "primary_key": "id",
+    "unique_columns": [
+      "name"
+    ],
+    "column_order": [
+      "id",
+      "name",
+      "permissions"
+    ]
+  },
+  "permissions": {
+    "columns": {
+      "id": "INT",
+      "name": "TEXT",
+      "description": "TEXT"
+    },
+    "primary_key": "id",
+    "unique_columns": [
+      "name"
+    ],
+    "column_order": [
+      "id",
+      "name",
+      "description"
+    ]
+  },
+  "products": {
+    "columns": {
+      "id": "INT",
+      "name": "TEXT",
+      "description": "TEXT",
+      "price": "REAL",
+      "category": "TEXT",
+      "stock": "INT",
+      "created_by": "INT",
+      "created_at": "TEXT",
+      "updated_at": "TEXT"
+    },
+    "primary_key": "id",
+    "unique_columns": [],
+    "column_order": [
+      "id",
+      "name",
+      "description",
+      "price",
+      "category",
+      "stock",
+      "created_by",
+      "created_at",
+      "updated_at"
+    ]
+  }
+}

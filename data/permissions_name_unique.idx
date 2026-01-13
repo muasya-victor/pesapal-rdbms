@@ -1,0 +1,50 @@
+{
+  "create_user": [
+    0
+  ],
+  "update_user": [
+    1
+  ],
+  "delete_user": [
+    2
+  ],
+  "view_users": [
+    3
+  ],
+  "create_product": [
+    4
+  ],
+  "update_product": [
+    5
+  ],
+  "delete_product": [
+    6
+  ],
+  "view_all_products": [
+    7
+  ],
+  "view_products": [
+    8
+  ],
+  "create_own_product": [
+    9
+  ],
+  "update_own_product": [
+    10
+  ],
+  "delete_own_product": [
+    11
+  ],
+  "update_stock": [
+    12
+  ],
+  "manage_roles": [
+    13
+  ],
+  "view_profile": [
+    14
+  ],
+  "update_profile": [
+    15
+  ]
+}

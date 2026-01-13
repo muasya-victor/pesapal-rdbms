@@ -1,0 +1,23 @@
+{
+  "admin": [
+    0
+  ],
+  "superadmin": [
+    1
+  ],
+  "alice_manager": [
+    2
+  ],
+  "bob_sales": [
+    3
+  ],
+  "charlie_tech": [
+    4
+  ],
+  "diana_viewer": [
+    5
+  ],
+  "edward_admin": [
+    6
+  ]
+}
