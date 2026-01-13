@@ -1,4 +1,8 @@
+# executor/join_executor.py
 class JoinExecutor:
+    def __init__(self):
+        pass
+    
     @staticmethod
     def nested_loop_join(left_rows, right_rows, left_key_idx, right_key_idx):
         """
@@ -37,11 +41,9 @@ class JoinExecutor:
             raise Exception(f"Unknown table or alias: {table_ref}")
         else:
             # Simple column name - need to figure out which table
-            # For simplicity in demo, we'll require table prefix
             raise Exception(f"Column reference must include table: {col_ref}")
     
-    @staticmethod
-    def execute_join(table_info, catalog, storage):
+    def execute_join(self, table_info, catalog, storage):
         """
         Execute a JOIN query.
         Returns: (joined_rows, combined_schema)
@@ -54,8 +56,8 @@ class JoinExecutor:
         left_cond, right_cond = table_info['join_condition']
         
         # Parse join conditions
-        left_table, left_col = JoinExecutor.parse_column_reference(left_cond, aliases, catalog)
-        right_table, right_col = JoinExecutor.parse_column_reference(right_cond, aliases, catalog)
+        left_table, left_col = self.parse_column_reference(left_cond, aliases, catalog)
+        right_table, right_col = self.parse_column_reference(right_cond, aliases, catalog)
         
         # Read both tables
         left_rows = storage.read_table(left_table)
@@ -73,7 +75,7 @@ class JoinExecutor:
         right_key_idx = right_schema["column_order"].index(right_col)
         
         # Perform join
-        joined_rows = JoinExecutor.nested_loop_join(
+        joined_rows = self.nested_loop_join(
             left_rows, right_rows, left_key_idx, right_key_idx
         )
         
