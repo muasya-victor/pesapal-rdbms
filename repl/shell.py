@@ -3,13 +3,14 @@ from db.catalog import Catalog
 from parser.tokenizer import tokenize
 from executor.executor import Executor
 from parser.parser import Parser
+from executor.join_executor import JoinExecutor
 
 class MiniDBShell:
     def __init__(self):
         self.running = True
         self.storage = Storage()
         self.catalog = Catalog(self.storage)
-        # self.executor = Executor(self.catalog, self.storage)
+        self.executor = Executor(self.catalog, self.storage)
         self.parser = Parser()
     
     def run(self):
@@ -136,60 +137,149 @@ class MiniDBShell:
                 print(f"Error: {e}")
             return
 
-
         # SELECT command
         if cmd.upper().startswith("SELECT"):
             try:
-                # Parse the SELECT command
-                table_name, columns, where_clause = self.parser.parse_select(cmd)
+                # Parse the SELECT command (now returns table_info instead of table_name)
+                table_info, columns, where_clause = self.parser.parse_select(cmd)
                 
-                # Read the table data
-                rows = self.storage.read_table(table_name)
-                
-                # Get schema for column mapping
-                schema = self.catalog.get_table_schema(table_name)
-                if not schema:
-                    raise Exception(f"Table '{table_name}' not found")
-                
-                # Apply WHERE clause if present
-                if where_clause:
-                    column_name, operator, value = where_clause
+                if table_info['type'] == 'single':
+                    # Original single-table logic
+                    table_name = table_info['tables'][0]
+                    rows = self.storage.read_table(table_name)
                     
-                    # Try to use index for fast lookup
-                    index = self.catalog.get_index(table_name, column_name)
-                    if index and operator == '=':
-                        row_positions = index.get(value)
-                        if row_positions:
-                            # Read specific rows using positions
-                            all_rows = self.storage.read_table(table_name)
-                            rows = [all_rows[pos] for pos in row_positions if pos < len(all_rows)]
+                    # Get schema for column mapping
+                    schema = self.catalog.get_table_schema(table_name)
+                    if not schema:
+                        raise Exception(f"Table '{table_name}' not found")
+                    
+                    # Apply WHERE clause if present
+                    if where_clause:
+                        column_name, operator, value = where_clause
+                        
+                        # Try to use index for fast lookup (only for equality)
+                        index = self.catalog.get_index(table_name, column_name)
+                        if index and operator == '=':
+                            row_positions = index.get(value)
+                            if row_positions:
+                                # Read specific rows using positions
+                                all_rows = self.storage.read_table(table_name)
+                                rows = [all_rows[pos] for pos in row_positions if pos < len(all_rows)]
+                            else:
+                                rows = []  # No matches
                         else:
-                            rows = []  # No matches
-                    else:
-                        # Fall back to full table scan
-                        col_index = schema["column_order"].index(column_name)
-                        filtered_rows = []
-                        for row in all_rows:
-                            if row[col_index] == value:
-                                filtered_rows.append(row)
-                        rows = filtered_rows
+                            # Fall back to full table scan with operator support
+                            col_index = schema["column_order"].index(column_name)
+                            filtered_rows = []
+                            for row in rows:
+                                row_value = row[col_index]
+                                if operator == '=' and row_value == value:
+                                    filtered_rows.append(row)
+                                elif operator == '!=' and row_value != value:
+                                    filtered_rows.append(row)
+                                elif operator == '<' and row_value < value:
+                                    filtered_rows.append(row)
+                                elif operator == '>' and row_value > value:
+                                    filtered_rows.append(row)
+                                elif operator == '<=' and row_value <= value:
+                                    filtered_rows.append(row)
+                                elif operator == '>=' and row_value >= value:
+                                    filtered_rows.append(row)
+                            rows = filtered_rows
                     
-                # Select specific columns if requested
-                if columns and columns != ['*']:
-                    # Validate requested columns
-                    for col in columns:
-                        if col not in schema["column_order"]:
-                            raise Exception(f"Column '{col}' not found in table '{table_name}'")
+                    # Select specific columns if requested
+                                        # Select specific columns if requested
+                    if columns and columns != ['*']:
+                        # For JOIN queries, columns might have table prefixes
+                        col_indices = []
+                        for col in columns:
+                            # Check if column is in combined schema
+                            if col in combined_schema['column_order']:
+                                col_indices.append(combined_schema['column_order'].index(col))
+                            else:
+                                # Try to find column without prefix (for backward compatibility)
+                                found = False
+                                for prefixed_col in combined_schema['column_order']:
+                                    if prefixed_col.endswith(f".{col}"):
+                                        col_indices.append(combined_schema['column_order'].index(prefixed_col))
+                                        found = True
+                                        break
+                                if not found:
+                                    raise Exception(f"Column '{col}' not found in joined result")
+                        
+                        # Extract only requested columns
+                        projected_rows = []
+                        for row in rows:
+                            projected_row = [row[idx] for idx in col_indices]
+                            projected_rows.append(projected_row)
+                        rows = projected_rows
+                        
+                elif table_info['type'] == 'join':
+                    # JOIN query
+                    # Execute the join
+                    rows, combined_schema = JoinExecutor.execute_join(
+                        table_info, self.catalog, self.storage
+                    )
                     
-                    # Map column names to indices
-                    col_indices = [schema["column_order"].index(col) for col in columns]
+                    # Apply WHERE clause if present (post-join filtering)
+                    if where_clause:
+                        column_name, operator, value = where_clause
+                        
+                        # Find column index in joined result
+                        if column_name in combined_schema['column_order']:
+                            col_index = combined_schema['column_order'].index(column_name)
+                            
+                            # Apply operator filtering
+                            filtered_rows = []
+                            for row in rows:
+                                row_value = row[col_index]
+                                if operator == '=' and row_value == value:
+                                    filtered_rows.append(row)
+                                elif operator == '!=' and row_value != value:
+                                    filtered_rows.append(row)
+                                elif operator == '<' and row_value < value:
+                                    filtered_rows.append(row)
+                                elif operator == '>' and row_value > value:
+                                    filtered_rows.append(row)
+                                elif operator == '<=' and row_value <= value:
+                                    filtered_rows.append(row)
+                                elif operator == '>=' and row_value >= value:
+                                    filtered_rows.append(row)
+                            rows = filtered_rows
+                        else:
+                            raise Exception(f"Column '{column_name}' not found in joined result")
                     
-                    # Extract only requested columns
-                    projected_rows = []
-                    for row in rows:
-                        projected_row = [row[idx] for idx in col_indices]
-                        projected_rows.append(projected_row)
-                    rows = projected_rows
+                    # Select specific columns if requested
+                    if columns and columns != ['*']:
+                        # For JOIN queries, columns might have table prefixes
+                        col_indices = []
+                        for col in columns:
+                            if '.' in col:
+                                # Column with table prefix: table.column
+                                # We need to find the right position in joined rows
+                                # Simple approach: look for column in combined schema
+                                if col in combined_schema['column_order']:
+                                    col_indices.append(combined_schema['column_order'].index(col))
+                                else:
+                                    # Try without table prefix
+                                    col_name_only = col.split('.')[-1]
+                                    if col_name_only in combined_schema['column_order']:
+                                        col_indices.append(combined_schema['column_order'].index(col_name_only))
+                                    else:
+                                        raise Exception(f"Column '{col}' not found in joined result")
+                            else:
+                                # Simple column name
+                                if col in combined_schema['column_order']:
+                                    col_indices.append(combined_schema['column_order'].index(col))
+                                else:
+                                    raise Exception(f"Column '{col}' not found in joined result")
+                        
+                        # Extract only requested columns
+                        projected_rows = []
+                        for row in rows:
+                            projected_row = [row[idx] for idx in col_indices]
+                            projected_rows.append(projected_row)
+                        rows = projected_rows
                 
                 # Display results
                 if not rows:
@@ -210,7 +300,7 @@ class MiniDBShell:
             except Exception as e:
                 print(f"Error: {e}")
             return
-
+        
         if cmd.upper().startswith("UPDATE"):
             try:
                 # Parse the UPDATE command

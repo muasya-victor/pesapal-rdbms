@@ -156,9 +156,14 @@ class Parser:
     
     def parse_select(self, sql):
         """
-        Parse: SELECT column_list FROM table_name [WHERE condition]
-        Returns: (table_name, columns, where_clause)
-        where_clause: (column_name, operator, value) or None
+        Parse: SELECT column_list FROM table_name [JOIN ...] [WHERE condition]
+        Returns: (table_info, columns, where_clause)
+        table_info: {
+            'type': 'single' or 'join',
+            'tables': [table1, table2],
+            'aliases': {table: alias},
+            'join_condition': (left_col, right_col) or None
+        }
         """
         from .tokenizer import tokenize
         tokens = tokenize(sql)
@@ -185,8 +190,11 @@ class Parser:
         if i >= len(tokens):
             raise Exception("Missing table name in SELECT")
         
-        table_name = tokens[i]
-        i += 1
+        # Parse FROM clause (could be single table or JOIN)
+        table_info = self._parse_from_clause(tokens, i)
+        
+        # Move i past the FROM clause
+        i = table_info.get('end_index', i)
         
         # Parse WHERE clause if present
         where_clause = None
@@ -199,9 +207,9 @@ class Parser:
             column = tokens[i]
             operator = tokens[i + 1]
             
-            # Only support = operator for now
-            if operator != '=':
-                raise Exception(f"Unsupported operator: {operator}. Only '=' is supported")
+            # Support multiple operators
+            if operator not in ['=', '!=', '<', '>', '<=', '>=']:
+                raise Exception(f"Unsupported operator: {operator}")
             
             value = tokens[i + 2]
             
@@ -214,13 +222,93 @@ class Parser:
                 try:
                     value = int(value)
                 except ValueError:
-                    # Keep as string if not integer
-                    pass
+                    # Try as float
+                    try:
+                        value = float(value)
+                    except ValueError:
+                        # Keep as string
+                        pass
             
             where_clause = (column, operator, value)
         
-        return table_name, columns, where_clause
+        return table_info, columns, where_clause
     
+    def _parse_from_clause(self, tokens, start_index):
+        """
+        Parse FROM clause: table_name [alias] [JOIN table_name [alias] ON condition]
+        Returns: {
+            'type': 'single' or 'join',
+            'tables': [table1, table2],
+            'aliases': {table: alias or table},
+            'join_condition': (left_table.column, right_table.column) or None,
+            'end_index': index after parsing FROM clause
+        }
+        """
+        i = start_index
+        
+        # Parse first table
+        table1 = tokens[i]
+        i += 1
+        
+        # Check for alias
+        alias1 = table1
+        if i < len(tokens) and tokens[i] not in ['JOIN', 'WHERE', 'ON']:
+            # This token could be an alias
+            alias1 = tokens[i]
+            i += 1
+        
+        # Check if this is a JOIN
+        if i < len(tokens) and tokens[i].upper() == "JOIN":
+            i += 1  # Move past JOIN
+            
+            if i >= len(tokens):
+                raise Exception("Missing table name after JOIN")
+            
+            # Parse second table
+            table2 = tokens[i]
+            i += 1
+            
+            # Check for alias on second table
+            alias2 = table2
+            if i < len(tokens) and tokens[i].upper() != "ON":
+                # This token could be an alias
+                alias2 = tokens[i]
+                i += 1
+            
+            # Expect ON keyword
+            if i >= len(tokens) or tokens[i].upper() != "ON":
+                raise Exception("Missing ON keyword in JOIN")
+            
+            i += 1  # Move past ON
+            
+            # Parse join condition: table.column = table.column
+            if i + 2 >= len(tokens):
+                raise Exception("Invalid JOIN condition")
+            
+            left_condition = tokens[i]
+            if tokens[i + 1] != '=':
+                raise Exception("JOIN only supports equality conditions with '='")
+            right_condition = tokens[i + 2]
+            
+            i += 3  # Move past condition
+            
+            return {
+                'type': 'join',
+                'tables': [table1, table2],
+                'aliases': {table1: alias1, table2: alias2},
+                'join_condition': (left_condition, right_condition),
+                'end_index': i
+            }
+        else:
+            # Single table
+            return {
+                'type': 'single',
+                'tables': [table1],
+                'aliases': {table1: alias1},
+                'join_condition': None,
+                'end_index': i
+            }
+        
     def parse_update(self, sql):
         """
         Parse: UPDATE table_name SET col1 = val1, col2 = val2 [WHERE condition]
