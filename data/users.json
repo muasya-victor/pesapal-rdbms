@@ -3,7 +3,14 @@
     [
       1,
       "alice@test.com",
-      "Alice"
+      "Alice",
+      31
+    ],
+    [
+      2,
+      "bob@test.com",
+      "Bob",
+      25
     ]
   ]
 }

@@ -3,7 +3,8 @@
     "columns": {
       "id": "INT",
       "email": "TEXT",
-      "name": "TEXT"
+      "name": "TEXT",
+      "age": "INT"
     },
     "primary_key": "id",
     "unique_columns": [
@@ -12,7 +13,8 @@
     "column_order": [
       "id",
       "email",
-      "name"
+      "name",
+      "age"
     ]
   }
 }
