@@ -1,3 +1,5 @@
+from db.index import HashIndex
+
 class Catalog:
     def __init__(self, storage):
         self.storage = storage
@@ -5,6 +7,23 @@ class Catalog:
         if not isinstance(self.schema, dict):
             print("Warning: Schema was not a dictionary. Resetting.")
             self.schema = {}
+        self.indexes = self._load_indexes()
+
+    def _load_indexes(self):
+        """Load all indexes for existing tables"""
+        indexes = {}
+        for table_name in self.schema:
+            schema = self.schema[table_name]
+            # Create index for primary key
+            if schema.get("primary_key"):
+                index_name = f"{table_name}_{schema['primary_key']}_pk"
+                indexes[index_name] = HashIndex(index_name, self.storage)
+            
+            # Create indexes for unique columns
+            for unique_col in schema.get("unique_columns", []):
+                index_name = f"{table_name}_{unique_col}_unique"
+                indexes[index_name] = HashIndex(index_name, self.storage)
+        return indexes
     
     def get_table(self, table_name):
         """Get schema for table, or None if doesn't exist"""
@@ -57,12 +76,36 @@ class Catalog:
         self.schema[table_name] = table_schema
         self.storage.set_table_schema(table_name, table_schema)
         self.storage.write_table(table_name, [])  # Create empty table
+
+        if primary_key:
+            index_name = f"{table_name}_{primary_key}_pk"
+            self.indexes[index_name] = HashIndex(index_name, self.storage)
+        
+        for unique_col in unique_columns:
+            index_name = f"{table_name}_{unique_col}_unique"
+            self.indexes[index_name] = HashIndex(index_name, self.storage)
+        
         
         return table_schema
     
     def get_table_schema(self, table_name):
         """Get complete schema for a table"""
         return self.schema.get(table_name)
+    
+    def get_index(self, table_name, column_name):
+        """Get index for a table column if it exists"""
+        # Try primary key index
+        pk_index_name = f"{table_name}_{column_name}_pk"
+        if pk_index_name in self.indexes:
+            return self.indexes[pk_index_name]
+        
+        # Try unique index
+        unique_index_name = f"{table_name}_{column_name}_unique"
+        if unique_index_name in self.indexes:
+            return self.indexes[unique_index_name]
+        
+        return None
+
     
     def validate_insert(self, table_name, values):
         """

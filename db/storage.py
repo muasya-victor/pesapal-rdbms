@@ -53,6 +53,7 @@ class Storage:
     def write_schema(self, schema):
         """Write entire schema catalog"""
         schema_path = self.data_dir / "schema.json"
+        schema_path.parent.mkdir(exist_ok=True, parents=True)
         with open(schema_path, 'w') as f:
             json.dump(schema, f, indent=2)
     
@@ -77,3 +78,28 @@ class Storage:
                 return json.load(f)
         except json.JSONDecodeError:
             return {}
+        
+    def insert_with_index(self, catalog, table_name, values, row_position):
+        """Insert a row and update indexes"""
+        schema = catalog.get_table_schema(table_name)
+        
+        # Update primary key index
+        if schema.get("primary_key"):
+            pk_col = schema["primary_key"]
+            pk_index = pk_col  # Get column name
+            col_index = schema["column_order"].index(pk_col)
+            pk_value = values[col_index]
+            
+            # Update index
+            index = catalog.get_index(table_name, pk_col)
+            if index:
+                index.add(pk_value, row_position)
+        
+        # Update unique indexes
+        for unique_col in schema.get("unique_columns", []):
+            col_index = schema["column_order"].index(unique_col)
+            col_value = values[col_index]
+            
+            index = catalog.get_index(table_name, unique_col)
+            if index:
+                index.add(col_value, row_position)

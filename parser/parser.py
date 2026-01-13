@@ -220,3 +220,138 @@ class Parser:
             where_clause = (column, operator, value)
         
         return table_name, columns, where_clause
+    
+    def parse_update(self, sql):
+        """
+        Parse: UPDATE table_name SET col1 = val1, col2 = val2 [WHERE condition]
+        Returns: (table_name, updates, where_clause)
+        updates: {column_name: new_value}
+        where_clause: (column_name, operator, value) or None
+        """
+        from .tokenizer import tokenize
+        tokens = tokenize(sql)
+        
+        if len(tokens) < 6:
+            raise Exception("Invalid UPDATE syntax")
+        if tokens[0].upper() != "UPDATE":
+            raise Exception("Not an UPDATE statement")
+        
+        table_name = tokens[1]
+        
+        if tokens[2].upper() != "SET":
+            raise Exception("Missing SET keyword in UPDATE")
+        
+        # Parse SET clause
+        updates = {}
+        i = 3
+        while i < len(tokens) and tokens[i].upper() != "WHERE":
+            if tokens[i] == ',':
+                i += 1
+                continue
+            
+            if i + 2 >= len(tokens):
+                raise Exception("Invalid SET clause")
+            
+            column = tokens[i]
+            if tokens[i + 1] != '=':
+                raise Exception(f"Expected '=' after column name, got {tokens[i + 1]}")
+            
+            value = tokens[i + 2]
+            
+            # Parse value (remove quotes if string)
+            if (value.startswith('"') and value.endswith('"')) or \
+               (value.startswith("'") and value.endswith("'")):
+                value = value[1:-1]  # Remove quotes
+            else:
+                # Try to parse as integer
+                try:
+                    value = int(value)
+                except ValueError:
+                    # Keep as string
+                    pass
+            
+            updates[column] = value
+            i += 3
+        
+        # Parse WHERE clause if present
+        where_clause = None
+        if i < len(tokens) and tokens[i].upper() == "WHERE":
+            i += 1  # Move past WHERE
+            
+            if i + 2 >= len(tokens):
+                raise Exception("Invalid WHERE clause")
+            
+            column = tokens[i]
+            operator = tokens[i + 1]
+            
+            # Only support = operator for now
+            if operator != '=':
+                raise Exception(f"Unsupported operator: {operator}. Only '=' is supported")
+            
+            value = tokens[i + 2]
+            
+            # Parse the value (remove quotes if string)
+            if (value.startswith('"') and value.endswith('"')) or \
+               (value.startswith("'") and value.endswith("'")):
+                value = value[1:-1]  # Remove quotes
+            else:
+                # Try to parse as integer
+                try:
+                    value = int(value)
+                except ValueError:
+                    # Keep as string
+                    pass
+            
+            where_clause = (column, operator, value)
+        
+        return table_name, updates, where_clause
+    
+    def parse_delete(self, sql):
+        """
+        Parse: DELETE FROM table_name [WHERE condition]
+        Returns: (table_name, where_clause)
+        where_clause: (column_name, operator, value) or None
+        """
+        from .tokenizer import tokenize
+        tokens = tokenize(sql)
+        
+        if len(tokens) < 3:
+            raise Exception("Invalid DELETE syntax")
+        if tokens[0].upper() != "DELETE" or tokens[1].upper() != "FROM":
+            raise Exception("Not a DELETE statement")
+        
+        table_name = tokens[2]
+        
+        # Parse WHERE clause if present
+        where_clause = None
+        if len(tokens) > 3:
+            if tokens[3].upper() != "WHERE":
+                raise Exception(f"Expected WHERE, got {tokens[3]}")
+            
+            if len(tokens) < 7:
+                raise Exception("Invalid WHERE clause in DELETE")
+            
+            column = tokens[4]
+            operator = tokens[5]
+            
+            # Only support = operator for now
+            if operator != '=':
+                raise Exception(f"Unsupported operator: {operator}. Only '=' is supported")
+            
+            value = tokens[6]
+            
+            # Parse the value (remove quotes if string)
+            if (value.startswith('"') and value.endswith('"')) or \
+               (value.startswith("'") and value.endswith("'")):
+                value = value[1:-1]  # Remove quotes
+            else:
+                # Try to parse as integer
+                try:
+                    value = int(value)
+                except ValueError:
+                    # Keep as string
+                    pass
+            
+            where_clause = (column, operator, value)
+        
+        return table_name, where_clause

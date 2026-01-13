@@ -74,41 +74,69 @@ class MiniDBShell:
                 if not valid:
                     raise Exception(f"Validation failed: {error_msg}")
                 
-                # 2. Check for duplicate primary key (basic check for now)
+                # 2. Check for duplicate primary key using index
                 schema = self.catalog.get_table_schema(table_name)
                 if schema["primary_key"]:
                     pk_index = schema["column_order"].index(schema["primary_key"])
                     pk_value = values[pk_index]
                     
-                    # Read existing rows to check for duplicates
-                    existing_rows = self.storage.read_table(table_name)
-                    for row in existing_rows:
-                        if row[pk_index] == pk_value:
-                            raise Exception(f"Duplicate primary key value: {pk_value}")
+                    # Use index for faster duplicate check
+                    index = self.catalog.get_index(table_name, schema["primary_key"])
+                    if index and index.has_key(pk_value):
+                        raise Exception(f"Duplicate primary key value: {pk_value}")
+                    else:
+                        # Fall back to full scan
+                        existing_rows = self.storage.read_table(table_name)
+                        for row in existing_rows:
+                            if row[pk_index] == pk_value:
+                                raise Exception(f"Duplicate primary key value: {pk_value}")
                 
-                # 3. Check unique constraints (basic check for now)
+                # 3. Check unique constraints using indexes
                 for unique_col in schema.get("unique_columns", []):
                     col_index = schema["column_order"].index(unique_col)
                     col_value = values[col_index]
                     
-                    existing_rows = self.storage.read_table(table_name)
-                    for row in existing_rows:
-                        if row[col_index] == col_value:
-                            raise Exception(f"Duplicate value for UNIQUE column '{unique_col}': {col_value}")
+                    # Use index for faster duplicate check
+                    index = self.catalog.get_index(table_name, unique_col)
+                    if index and index.has_key(col_value):
+                        raise Exception(f"Duplicate value for UNIQUE column '{unique_col}': {col_value}")
+                    else:
+                        # Fall back to full scan
+                        existing_rows = self.storage.read_table(table_name)
+                        for row in existing_rows:
+                            if row[col_index] == col_value:
+                                raise Exception(f"Duplicate value for UNIQUE column '{unique_col}': {col_value}")
                 
                 # 4. Insert the row
                 rows = self.storage.read_table(table_name)
+                row_position = len(rows)  # Position of new row
                 rows.append(values)
                 self.storage.write_table(table_name, rows)
+                
+                # 5. Update indexes
+                # Update primary key index
+                if schema["primary_key"]:
+                    pk_index_col = schema["column_order"].index(schema["primary_key"])
+                    pk_value = values[pk_index_col]
+                    index = self.catalog.get_index(table_name, schema["primary_key"])
+                    if index:
+                        index.add(pk_value, row_position)
+                
+                # Update unique indexes
+                for unique_col in schema.get("unique_columns", []):
+                    col_index = schema["column_order"].index(unique_col)
+                    col_value = values[col_index]
+                    index = self.catalog.get_index(table_name, unique_col)
+                    if index:
+                        index.add(col_value, row_position)
                 
                 print(f"Inserted 1 row into {table_name}")
                 
             except Exception as e:
                 print(f"Error: {e}")
             return
-        
-            # In handle_command method, add this after INSERT handling:
-    
+
+
         # SELECT command
         if cmd.upper().startswith("SELECT"):
             try:
@@ -127,19 +155,25 @@ class MiniDBShell:
                 if where_clause:
                     column_name, operator, value = where_clause
                     
-                    # Find column index
-                    if column_name not in schema["column_order"]:
-                        raise Exception(f"Column '{column_name}' not found in table '{table_name}'")
+                    # Try to use index for fast lookup
+                    index = self.catalog.get_index(table_name, column_name)
+                    if index and operator == '=':
+                        row_positions = index.get(value)
+                        if row_positions:
+                            # Read specific rows using positions
+                            all_rows = self.storage.read_table(table_name)
+                            rows = [all_rows[pos] for pos in row_positions if pos < len(all_rows)]
+                        else:
+                            rows = []  # No matches
+                    else:
+                        # Fall back to full table scan
+                        col_index = schema["column_order"].index(column_name)
+                        filtered_rows = []
+                        for row in all_rows:
+                            if row[col_index] == value:
+                                filtered_rows.append(row)
+                        rows = filtered_rows
                     
-                    col_index = schema["column_order"].index(column_name)
-                    
-                    # Filter rows (only = operator for now)
-                    filtered_rows = []
-                    for row in rows:
-                        if row[col_index] == value:
-                            filtered_rows.append(row)
-                    rows = filtered_rows
-                
                 # Select specific columns if requested
                 if columns and columns != ['*']:
                     # Validate requested columns
@@ -176,7 +210,22 @@ class MiniDBShell:
             except Exception as e:
                 print(f"Error: {e}")
             return
+
+        if schema["primary_key"]:
+            pk_index = schema["column_order"].index(schema["primary_key"])
+            pk_value = values[pk_index]
             
+            # Use index for faster duplicate check
+            index = self.catalog.get_index(table_name, schema["primary_key"])
+            if index and index.has_key(pk_value):
+                raise Exception(f"Duplicate primary key value: {pk_value}")
+            else:
+                # Fall back to full scan
+                existing_rows = self.storage.read_table(table_name)
+                for row in existing_rows:
+                    if row[pk_index] == pk_value:
+                        raise Exception(f"Duplicate primary key value: {pk_value}")
+
         print(f"Command received: {command}")
         print("Supported: CREATE TABLE, INSERT INTO, SHOW TABLES,SELECT, EXIT")
 
