@@ -1,0 +1,28 @@
+{
+  "students": {
+    "columns": {
+      "id": "INT",
+      "name": "TEXT",
+      "grade": "INT"
+    },
+    "primary_key": "id",
+    "unique_columns": [],
+    "column_order": [
+      "id",
+      "name",
+      "grade"
+    ]
+  },
+  "courses": {
+    "columns": {
+      "id": "INT",
+      "name": "TEXT"
+    },
+    "primary_key": "id",
+    "unique_columns": [],
+    "column_order": [
+      "id",
+      "name"
+    ]
+  }
+}
