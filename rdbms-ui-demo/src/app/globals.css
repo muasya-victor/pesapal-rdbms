@@ -1,0 +1,247 @@
+/* src/app/globals.css */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Your custom colors */
+  --color-primary-dark: #000d47;
+  --color-primary-red: #A81414;
+  --color-primary-blue: #064dae;
+  
+  /* Shadcn/ui CSS variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+:root {
+  /* Your custom colors as CSS variables */
+  --primary-dark: #000d47;
+  --primary-red: #A81414;
+  --primary-blue: #064dae;
+  
+  /* Shadcn/ui CSS variables with your colors */
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  
+  /* Primary color set to your blue */
+  --primary: #064dae;
+  --primary-foreground: oklch(0.985 0 0);
+  
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  
+  /* Destructive color set to your red */
+  --destructive: #A81414;
+  
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  
+  /* Chart colors */
+  --chart-1: #064dae;
+  --chart-2: #000d47;
+  --chart-3: #A81414;
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  
+  /* Sidebar using your dark blue */
+  --sidebar: #000d47;
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #064dae;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  
+  /* Dark mode primary */
+  --primary: #064dae;
+  --primary-foreground: oklch(0.985 0 0);
+  
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  
+  /* Dark mode destructive */
+  --destructive: #A81414;
+  
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  
+  /* Dark mode chart colors */
+  --chart-1: #064dae;
+  --chart-2: #000d47;
+  --chart-3: #A81414;
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  
+  /* Dark mode sidebar */
+  --sidebar: #000d47;
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #064dae;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(0.97 0 0);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #000d47;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #064dae;
+}
+
+/* Custom utility classes for your colors */
+.text-primary-dark {
+  color: #000d47;
+}
+
+.text-primary-red {
+  color: #A81414;
+}
+
+.text-primary-blue {
+  color: #064dae;
+}
+
+.bg-primary-dark {
+  background-color: #000d47;
+}
+
+.bg-primary-red {
+  background-color: #A81414;
+}
+
+.bg-primary-blue {
+  background-color: #064dae;
+}
+
+.border-primary-dark {
+  border-color: #000d47;
+}
+
+.border-primary-red {
+  border-color: #A81414;
+}
+
+.border-primary-blue {
+  border-color: #064dae;
+}
+
+.hover\:bg-primary-dark:hover {
+  background-color: #000d47;
+}
+
+.hover\:bg-primary-blue:hover {
+  background-color: #064dae;
+}
+
+.hover\:bg-primary-red:hover {
+  background-color: #A81414;
+}
+
+.hover\:text-primary-dark:hover {
+  color: #000d47;
+}
+
+.hover\:text-primary-blue:hover {
+  color: #064dae;
+}
+
+.hover\:text-primary-red:hover {
+  color: #A81414;
+}
+
+/* Focus styles with your colors */
+.focus\:ring-primary-blue:focus {
+  --tw-ring-color: #064dae;
+}
+
+.focus\:border-primary-blue:focus {
+  border-color: #064dae;
+}
