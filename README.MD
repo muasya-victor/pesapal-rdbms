@@ -1,17 +1,46 @@
 # **PesaPal Database System**
 
-A complete database system with **MiniDB engine**, **REST API**, and **role-based authentication**.
+A complete **end-to-end database platform** featuring a **custom MiniDB engine**, **REST API**, **database seeder**, and a **Next.js UI**, all working together with **role-based authentication**.
+
+--- 
+
+* Youtube WalkThrough: [https://www.youtube.com/watch?v=I64AVCBLfWw](https://www.youtube.com/watch?v=I64AVCBLfWw)
+
+---
 
 ## **📦 System Components**
 
-1. **MiniDB Engine** - Custom SQL database (port 2500)
-2. **REST API** - Flask backend with authentication (port 3500)
-3. **Database Seeder** - Populates sample data
+1. **MiniDB Engine**
+   Custom SQL-like database engine
+   Port: **2500**
+
+2. **REST API**
+   Flask backend with authentication & RBAC
+   Port: **3500**
+
+3. **Database Seeder**
+   Populates MiniDB with initial data
+
+4. **UI Demo (Next.js)**
+   Frontend consuming the REST API
+   Port: **3000**
+
+---
 
 ## **🚀 Quick Start**
 
-### **1. Start Both Services**
+### **1. Start All Services**
+
 ```bash
+# Setup Environment
+python -m venv .venv
+
+# Activate Environment
+source .venv/bin/activate
+
+# Install requirements
+pip3 install -r requirements.txt
+
 # Terminal 1: Start MiniDB Database
 cd pesapal-rdbms
 python server.py
@@ -19,130 +48,209 @@ python server.py
 # Terminal 2: Start REST API
 cd api
 python run.py
+
+# Terminal 3: Start UI
+cd rdbms-ui-demo
+npm install
+npm run dev
 ```
 
 **Services will run on:**
-- MiniDB: http://localhost:2500
-- REST API: http://localhost:3500
+
+* MiniDB → [http://localhost:2500](http://localhost:2500)
+* REST API → [http://localhost:3500](http://localhost:3500)
+* UI → [http://localhost:3000](http://localhost:3000)
+
+---
 
 ### **2. Seed Database with Sample Data**
+
 ```bash
 cd pesapal
 python seeder.py
 ```
 
 This creates:
-- 4 default roles (admin, manager, user, viewer)
-- 6 sample user accounts
-- 10 sample products
+
+* **4 default roles** (admin, manager, user, viewer)
+* **6 sample users**
+* **10 sample products**
+
+---
 
 ## **🔐 Default Test Credentials**
 
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | `superadmin` | `Admin123!` |
+| Role    | Username        | Password      |
+| ------- | --------------- | ------------- |
+| Admin   | `superadmin`    | `Admin123!`   |
 | Manager | `alice_manager` | `Manager123!` |
-| User | `bob_sales` | `Sales123!` |
-| Viewer | `diana_viewer` | `Viewer123!` |
+| User    | `bob_sales`     | `Sales123!`   |
+| Viewer  | `diana_viewer`  | `Viewer123!`  |
 
-## **🌐 API Endpoints**
+These credentials work for:
+
+* **API (cURL / Postman)**
+* **Next.js UI**
+
+---
+
+## **🌐 REST API Endpoints**
 
 ### **Authentication**
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/profile` - Get user profile
-- `GET /api/auth/permissions` - Get user permissions
+
+* `POST /api/auth/register`
+* `POST /api/auth/login`
+* `GET /api/auth/profile`
+* `GET /api/auth/permissions`
 
 ### **Products**
-- `GET /api/products` - List all products
-- `POST /api/products` - Create product (needs auth)
-- `GET /api/products/{id}` - Get single product
-- `PUT /api/products/{id}` - Update product
-- `DELETE /api/products/{id}` - Delete product
+
+* `GET /api/products`
+* `POST /api/products`
+* `GET /api/products/{id}`
+* `PUT /api/products/{id}`
+* `DELETE /api/products/{id}`
 
 ### **Users (Admin Only)**
-- `GET /api/users` - List all users
-- `PUT /api/users/{id}` - Update user
-- `POST /api/users/{id}/deactivate` - Deactivate user
+
+* `GET /api/users`
+* `PUT /api/users/{id}`
+* `POST /api/users/{id}/deactivate`
 
 ### **Roles (Admin Only)**
-- `GET /api/auth/roles` - List all roles
-- `POST /api/auth/roles` - Create new role
+
+* `GET /api/auth/roles`
+* `POST /api/auth/roles`
+
+---
 
 ## **🛠️ Testing with cURL**
 
 ```bash
-# 1. Register a user
+# Register
 curl -X POST http://localhost:3500/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username": "testuser", "email": "test@test.com", "password": "test123", "role": "user"}'
+  -d '{"username":"testuser","email":"test@test.com","password":"test123","role":"user"}'
 
-# 2. Login
+# Login
 curl -X POST http://localhost:3500/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username": "testuser", "password": "test123"}'
-# Save the session cookie from response headers
+  -d '{"username":"testuser","password":"test123"}'
 
-# 3. List products
+# List products
 curl http://localhost:3500/api/products
 
-# 4. Create product (with session cookie)
+# Create product
 curl -X POST http://localhost:3500/api/products \
   -H "Content-Type: application/json" \
   -H "Cookie: session=YOUR_SESSION_COOKIE" \
-  -d '{"name": "New Product", "price": 99.99, "stock": 10}'
+  -d '{"name":"New Product","price":99.99,"stock":10}'
 ```
 
-## **📁 Project Structure**
+---
+
+## **🖥️ UI Demo (Next.js)**
+
+The **RDBMS UI Demo** provides a visual interface for interacting with the MiniDB through the REST API.
+
+### **Features**
+
+* Login & session handling
+* Role-aware navigation
+* Product management
+* Admin-only user management
+* Read-only views for viewers
+
+### **Role-Based UI Behavior**
+
+| Role    | UI Access                |
+| ------- | ------------------------ |
+| Admin   | Users, roles, products   |
+| Manager | Products (create/update) |
+| User    | View products            |
+| Viewer  | Read-only                |
+
+---
+
+
+### **UI Project Structure**
+
+```
+rdbms-ui-demo/
+├── app/
+│   ├── login/
+│   ├── dashboard/
+│   ├── products/
+│   └── users/
+├── components/
+├── lib/
+│   └── api.ts
+├── middleware.ts
+└── package.json
+```
+
+---
+
+## **📁 Project Structure (Full System)**
+
 ```
 pesapal/
-├── pesapal-rdbms/     # MiniDB database engine
-├── api/               # REST API backend
-├── seeder.py          # Database seeder
-└── README.md          # This file
+├── pesapal-rdbms/     # MiniDB engine
+├── api/               # REST API
+├── rdbms-ui-demo/     # Next.js UI
+└── README.md
 ```
 
-## **🔄 Reset Database**
-```bash
-# Stop both services (Ctrl+C)
+---
 
-# Delete data files
-cd pesapal-rdbms/data
-rm -f *.json *.idx
-
-# Restart services and reseed
-cd ../..
-python seeder.py
-```
 
 ## **🔍 Health Checks**
+
 ```bash
-# Check MiniDB
+# MiniDB
 curl http://localhost:2500/health
 
-# Check REST API
+# API
 curl http://localhost:3500/health
 ```
+
+---
 
 ## **⚙️ Configuration**
 
 ### **Ports**
-- MiniDB: 2500
-- REST API: 3500
 
-### **Environment Variables**
-Create `.env` file in `api/` folder:
+* MiniDB: **2500**
+* API: **3500**
+* UI: **3000**
+
+### **API Environment Variables**
+
+`/.env`
+
 ```env
 MINIDB_URL=http://localhost:2500
 SECRET_KEY=your-secret-key-here
 DEBUG=True
 ```
 
-## **📞 Support**
-- **API Documentation**: http://localhost:3500
-- **MiniDB Shell**: Use `python main.py` in `pesapal-rdbms/` for SQL shell
-- **Postman Collection**: Use the provided endpoints with examples
+---
+
+## **🎯 System Flow**
+
+1. **MiniDB** handles storage & SQL execution
+2. **REST API** enforces authentication and RBAC
+3. **Seeder** initializes the system
+4. **UI** consumes the API and enforces permissions visually
 
 ---
 
-**🚀 Ready to go!** Start both services, run the seeder, and begin testing!
+## **📞 Support & Tooling**
+
+* API Docs: [http://localhost:3500](http://localhost:3500)
+* MiniDB Shell: `python main.py`
+* UI: [http://localhost:3000/auth/login](http://localhost:3000/auth/login)
+* Postman / cURL supported
+
+---
+
