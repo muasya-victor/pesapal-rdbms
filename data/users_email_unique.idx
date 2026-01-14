@@ -1,0 +1,23 @@
+{
+  "admin@test.com": [
+    0
+  ],
+  "admin@company.com": [
+    1
+  ],
+  "alice@store.com": [
+    2
+  ],
+  "bob@sales.com": [
+    3
+  ],
+  "charlie@tech.com": [
+    4
+  ],
+  "diana@viewer.com": [
+    5
+  ],
+  "edward@admin.com": [
+    6
+  ]
+}
